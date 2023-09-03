@@ -25,7 +25,6 @@ class _AppScreenState extends ConsumerState<AppScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Gudsman Reports',
-        context: context,
       ),
       body: FutureBuilder(
           future: SharedPref.getAccessToken(),

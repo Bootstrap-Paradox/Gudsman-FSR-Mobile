@@ -13,6 +13,8 @@ final orgFetchProvider =
 
 final orgProvider = StateProvider<OrganizationModel?>((ref) => null);
 
+final activeServiceReport = StateProvider<ServiceReport?>((ref) => null);
+
 final serviceReportListProvider =
     StateNotifierProvider<ServiceReportList, List<ServiceReport>>((ref) {
   return ServiceReportList(ref.watch(orgFetchProvider).value?.id ?? '', []);
@@ -39,11 +41,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return orgData.when(data: (orgDetails) {
       Future(() {
-        // ref.read(orgProvider.notifier).update((state) => orgDetails);
+        ref.read(orgProvider.notifier).update((state) => orgDetails);
         // ref.read(serviceReportListProvider.notifier).fetchServiceReports();
       });
       return Scaffold(
-          appBar: CustomAppBar(title: 'Gudsman Reports', context: context),
+          appBar: CustomAppBar(title: 'Gudsman Reports'),
           drawer: Drawer(
             child: ListView(
               padding: EdgeInsets.zero,
@@ -159,7 +161,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       return Scaffold(
           appBar: CustomAppBar(
             title: 'Gudsman Reports',
-            context: context,
           ),
           body: Center(
             child: Text(err.toString()),
@@ -168,7 +169,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       return Scaffold(
         appBar: CustomAppBar(
           title: 'Gudsman Reports',
-          context: context,
         ),
         body: const Center(child: CircularProgressIndicator()),
       );

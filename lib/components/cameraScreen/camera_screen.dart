@@ -53,7 +53,6 @@ class _NewCameraScreenState extends ConsumerState<NewCameraScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Gudsman Service',
-        context: context,
       ),
       body: FutureBuilder<void>(
         future: _initializeControllerFuture,

@@ -5,12 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class FetchSelect extends ConsumerStatefulWidget {
   const FetchSelect({
     super.key,
+    required this.fetchFor,
     required this.elementIdKey,
     required this.elementDisplayKey,
     this.elementSubtitleKey,
     required this.asyncItemsFetch,
     required this.onChanged,
   });
+
+  final String fetchFor;
 
   final String elementIdKey;
   final String elementDisplayKey;
@@ -42,7 +45,7 @@ class _FetchSelectState extends ConsumerState<FetchSelect> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Select Customer',
+                    'Select ${widget.fetchFor}',
                     style: TextStyle(color: Colors.grey.shade400),
                   ),
                 ),
@@ -63,7 +66,9 @@ class _FetchSelectState extends ConsumerState<FetchSelect> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  selectedItem['name'],
+                  widget.elementDisplayKey == '_name'
+                      ? selectedItem['_name']['value']
+                      : selectedItem[widget.elementDisplayKey],
                 ),
               ),
             ],
@@ -71,8 +76,8 @@ class _FetchSelectState extends ConsumerState<FetchSelect> {
         );
       },
       compareFn: (element, selectedElement) {
-        return element[widget.elementIdKey] ==
-            selectedElement[widget.elementIdKey];
+        return element?[widget.elementIdKey] ==
+            selectedElement?[widget.elementIdKey];
       },
       popupProps: PopupProps.modalBottomSheet(
         containerBuilder: (context, popupWidget) {
@@ -80,12 +85,12 @@ class _FetchSelectState extends ConsumerState<FetchSelect> {
             // mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Padding(
+              Padding(
                   // padding: EdgeInsets.only(right: 12),
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   child: Text(
-                    'Customers',
-                    style: TextStyle(
+                    '${widget.fetchFor}s',
+                    style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -122,19 +127,20 @@ class _FetchSelectState extends ConsumerState<FetchSelect> {
             return Container(
                 alignment: Alignment.topCenter,
                 child: Text(
-                  'Search to see Customers',
+                  'Search to see ${widget.fetchFor}s',
                   style: TextStyle(color: Colors.grey.shade600),
                 ));
           }
           return Container(
               alignment: Alignment.topCenter,
               child: Text(
-                'Customer $searchEntry not Found',
+                '${widget.fetchFor} $searchEntry not Found',
                 style: TextStyle(color: Colors.grey.shade600),
               ));
         },
+        searchDelay: const Duration(seconds: 1),
         searchFieldProps: TextFieldProps(
-          controller: elementController,
+          // controller: elementController,
           decoration: InputDecoration(
             labelStyle: TextStyle(color: Colors.grey.shade400),
             border: const OutlineInputBorder(
@@ -152,7 +158,11 @@ class _FetchSelectState extends ConsumerState<FetchSelect> {
           // print(item);
           // print(item.customer_display_name);
           return ListTile(
-            title: Text(element[widget.elementDisplayKey]),
+            title: Text(
+              widget.elementDisplayKey == '_name'
+                  ? element['_name']['value']
+                  : element[widget.elementDisplayKey],
+            ),
             subtitle: widget.elementSubtitleKey ??
                 (element[widget.elementSubtitleKey]),
             trailing:

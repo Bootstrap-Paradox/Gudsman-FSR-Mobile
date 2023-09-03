@@ -10,14 +10,22 @@ class ServiceReport {
   const ServiceReport({
     required this.serviceId,
     required this.customerName,
+    required this.status,
     required this.serviceType,
     required this.reportDetails,
+    required this.itemName,
+    required this.itemId,
     required this.startTime,
+    this.endTime,
   });
 
   final String serviceId;
   final String customerName;
+  final String itemId;
+  final String itemName;
+  final String status;
   final DateTime startTime;
+  final DateTime? endTime;
   final ReportTypes serviceType;
   final Map<String, dynamic> reportDetails;
 }
@@ -34,7 +42,7 @@ class ServiceReportList extends StateNotifier<List<ServiceReport>> {
   Future<String> newServiceReport(
       ReportTypes reportType, Map<String, dynamic> reportDetails) async {
     final http.Response response = await HttpReq.post(
-        '/api/v1/${orgId}/field-service-report',
+        '/api/v1/$orgId/field-service-report',
         {
           ...reportDetails,
           'service_type': reportType.toString().split('.').last,
@@ -48,6 +56,9 @@ class ServiceReportList extends StateNotifier<List<ServiceReport>> {
       ...state,
       ServiceReport(
           serviceId: responseBody['service_id'] ?? '12345678',
+          status: responseBody['service_status'],
+          itemId: responseBody['item_id'] ?? '',
+          itemName: responseBody['item_name'] ?? '',
           startTime: DateTime.now(),
           customerName: reportDetails['customer_name'] ?? 'testing Feature',
           serviceType: reportType,
@@ -68,7 +79,33 @@ class ServiceReportList extends StateNotifier<List<ServiceReport>> {
     ];
   }
 
-  void publishServiceReport() {}
+  Future<void> publishServiceReport(String serviceId) async {
+    final response = await HttpReq.put(
+        path: '/api/v1/$orgId/field-service-report',
+        body: state
+            .firstWhere((element) => element.serviceId == serviceId)
+            .reportDetails);
+
+    final responseBody = await json.decode(response.body);
+    print(responseBody);
+
+    state = [
+      for (final report in state)
+        if (report.serviceId == serviceId)
+          ServiceReport(
+              serviceId: report.serviceId,
+              itemId: report.itemId,
+              itemName: report.itemName,
+              status: 'complete',
+              endTime: DateTime.parse(responseBody['endTime']),
+              customerName: report.customerName,
+              startTime: report.startTime,
+              serviceType: report.serviceType,
+              reportDetails: report.reportDetails)
+        else
+          report
+    ];
+  }
 
   void updateServiceReport(
       String serviceId, String sectionTitle, String fieldName, dynamic value) {
@@ -77,6 +114,9 @@ class ServiceReportList extends StateNotifier<List<ServiceReport>> {
         if (report.serviceId == serviceId)
           ServiceReport(
               serviceId: report.serviceId,
+              itemId: report.itemId,
+              itemName: report.itemName,
+              status: report.status,
               customerName: report.customerName,
               startTime: report.startTime,
               serviceType: report.serviceType,
@@ -107,6 +147,9 @@ Future<List<ServiceReport>> getServiceReportDetails(String orgId) async {
   final List<ServiceReport> serviceReports = reports
       .map((e) => ServiceReport(
           serviceId: e['service_id'],
+          itemId: e['item_id'] ?? '',
+          itemName: e['item_name'] ?? '',
+          status: e['service_status'],
           customerName: e['customer_name'],
           startTime: DateTime.parse(e['start_date']),
           serviceType: ReportTypes.values.firstWhere((element) {

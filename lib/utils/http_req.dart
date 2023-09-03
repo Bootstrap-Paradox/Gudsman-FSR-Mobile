@@ -54,6 +54,31 @@ class HttpReq {
 
     return response;
   }
+
+  static Future<http.Response> put(
+      {path = '',
+      body = const {},
+      headers = const {},
+      authorized = true}) async {
+    final String accessToken =
+        await SharedPref.getAccessToken().then((value) => value);
+    if (accessToken == '') {
+      navigatorKey.currentState!.pushReplacementNamed('/login');
+      // throw UnauthorizedException(cause: 'No Token Found');
+    }
+
+    final response = await http
+        .put(Uri.parse(baseURL + path), body: jsonEncode(body), headers: {
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Authorization': 'Bearer ${authorized ? accessToken : ''}',
+    });
+
+    if (response.statusCode == 401) {
+      navigatorKey.currentState!.pushReplacementNamed('/login');
+    }
+
+    return response;
+  }
 }
 
 class AuthHttpRequest {

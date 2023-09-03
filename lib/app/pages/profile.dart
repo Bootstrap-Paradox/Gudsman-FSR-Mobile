@@ -9,7 +9,7 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: CustomAppBar(context: context, title: 'Gudsman Reports'),
+      appBar: CustomAppBar(title: 'Gudsman Reports'),
       body: const Center(
         child: Text('Profile Screen'),
       ),

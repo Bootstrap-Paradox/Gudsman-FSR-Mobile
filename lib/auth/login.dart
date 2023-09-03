@@ -61,7 +61,6 @@ class _LoginState extends State<LoginScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Gudsman Reports',
-        context: context,
       ),
       body: Center(
           child: Column(

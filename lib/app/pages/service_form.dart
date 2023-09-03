@@ -6,7 +6,7 @@ import 'package:gudsman_service/components/formComponents/inputAnalyzer/field_an
 import 'package:gudsman_service/utils/dataClass/report/report_form.dart';
 
 final Map<String, List<Map<String, dynamic>>> serviceFormSchema = {
-  'Conditions of': [
+  'conditions_of': [
     {
       'label': 'Engine Lubricating Oil',
       'type': 'number',
@@ -62,7 +62,7 @@ final Map<String, List<Map<String, dynamic>>> serviceFormSchema = {
       'required': true,
     },
   ],
-  'Levels of': [
+  'levels_of': [
     {
       'label': 'Engine Lubricating Oil',
       'type': 'number',
@@ -82,7 +82,7 @@ final Map<String, List<Map<String, dynamic>>> serviceFormSchema = {
       'required': true,
     },
   ],
-  'Leakage of': [
+  'leakage_of': [
     {
       'label': 'Diesel Pipes',
       'type': 'text',
@@ -114,7 +114,7 @@ final Map<String, List<Map<String, dynamic>>> serviceFormSchema = {
       'required': true,
     },
   ],
-  'Fastners of': [
+  'fastners_of': [
     {
       'label': 'Engine Coupling',
       'type': 'text',
@@ -134,7 +134,7 @@ final Map<String, List<Map<String, dynamic>>> serviceFormSchema = {
       'required': true,
     },
   ],
-  'Freeness of': [
+  'freeness_of': [
     {
       'label': 'Flywheel',
       'type': 'text',
@@ -148,7 +148,7 @@ final Map<String, List<Map<String, dynamic>>> serviceFormSchema = {
       'required': true,
     },
   ],
-  'Wiring Systems of': [
+  'wiring_systems_of': [
     {
       'label': 'Battery Charging',
       'type': 'text',
@@ -162,7 +162,7 @@ final Map<String, List<Map<String, dynamic>>> serviceFormSchema = {
       'required': true,
     },
   ],
-  'Check for': [
+  'check_for': [
     {
       'label': 'External Battery Charger',
       'type': 'text',
@@ -188,7 +188,7 @@ final Map<String, List<Map<String, dynamic>>> serviceFormSchema = {
       'required': true,
     },
   ],
-  'Cleaned/Changed': [
+  'cleaned/changed': [
     {
       'label': 'Air Filter',
       'type': 'text',
@@ -220,7 +220,7 @@ final Map<String, List<Map<String, dynamic>>> serviceFormSchema = {
       'required': true,
     },
   ],
-  'Safety Devices of': [
+  'safety_devices_of': [
     {
       'label': 'Low Lubricating Oil Pressure',
       'type': 'text',
@@ -408,15 +408,18 @@ class _ServiceFormScreenState extends ConsumerState<ServiceFormScreen> {
                                           ),
                                         )),
                                     onPressed: () {
-                                      ref
-                                          .read(
-                                              activeFormStageProvider.notifier)
-                                          .update((state) {
-                                        if (state < maxPageLimit) {
-                                          return state + 1;
-                                        }
-                                        return state;
-                                      });
+                                      showMyDialog(
+                                          ctx: context,
+                                          onSubmit: () async {
+                                            await ref
+                                                .read(serviceReportListProvider
+                                                    .notifier)
+                                                .publishServiceReport(
+                                                    widget.serviceId)
+                                                .then((value) {
+                                              Navigator.of(context).pop();
+                                            });
+                                          });
                                     },
                                     child: const Text(
                                       'Submit Report',
@@ -465,4 +468,42 @@ class _ServiceFormScreenState extends ConsumerState<ServiceFormScreen> {
       ),
     );
   }
+}
+
+Future<void> showMyDialog({
+  required BuildContext ctx,
+  Function? onSubmit,
+}) async {
+  return showDialog(
+      context: ctx,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Alert dialog'),
+          content: const SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Do you want to submit the Report'),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text(
+                'Cancel',
+                style: TextStyle(),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Submit'),
+              onPressed: () {
+                onSubmit!();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      });
 }
