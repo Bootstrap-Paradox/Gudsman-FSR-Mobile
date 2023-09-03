@@ -1,0 +1,58 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gudsman_service/app/pages/home.dart';
+import 'package:gudsman_service/auth/login.dart';
+import 'package:gudsman_service/components/custom_appbar.dart';
+import 'package:gudsman_service/utils/shared_prefs.dart';
+
+class AppScreen extends ConsumerStatefulWidget {
+  const AppScreen({super.key});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _AppScreenState();
+}
+
+class _AppScreenState extends ConsumerState<AppScreen> {
+  // The app screen will be used to check system only
+
+  int CurrentTab = 0;
+  final List<Widget> screens = const [
+    HomeScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: CustomAppBar(
+        title: 'Gudsman Reports',
+        context: context,
+      ),
+      body: FutureBuilder(
+          future: SharedPref.getAccessToken(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              if (snapshot.data == '') {
+                Future(() => Navigator.pushReplacement(
+                    context,
+                    PageRouteBuilder(
+                        pageBuilder: (context, animation1, animation2) =>
+                            const LoginScreen(),
+                        transitionDuration: Duration.zero,
+                        reverseTransitionDuration: Duration.zero)));
+              } else {
+                Future(() => Navigator.pushReplacement(
+                    context,
+                    PageRouteBuilder(
+                        pageBuilder: (context, animation1, animation2) =>
+                            const HomeScreen(),
+                        transitionDuration: Duration.zero,
+                        reverseTransitionDuration: Duration.zero)));
+              }
+            }
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }),
+    );
+  }
+}
