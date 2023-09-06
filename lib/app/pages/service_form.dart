@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gudsman_service/app/pages/home.dart';
 import 'package:gudsman_service/app/pages/new_service.dart';
+import 'package:gudsman_service/components/buttons/buttons.dart';
 import 'package:gudsman_service/components/formComponents/inputAnalyzer/field_analyzer.dart';
 import 'package:gudsman_service/utils/dataClass/report/report_form.dart';
 
@@ -252,6 +253,104 @@ final Map<String, List<Map<String, dynamic>>> serviceFormSchema = {
       'required': true,
     },
   ],
+  'load_trail_parameter': [
+    {
+      'label': 'Time',
+      'type': 'text',
+      'name': 'time',
+      'required': true,
+    },
+    {
+      'label': 'RPM',
+      'type': 'number',
+      'name': 'rpm',
+      'required': true,
+    },
+    {
+      'label': 'Temp H20',
+      'type': 'text',
+      'name': 'temp_h20',
+      'required': true,
+    },
+    {
+      'label': 'temp Oil',
+      'type': 'text',
+      'name': 'temp_oil',
+      'required': true,
+    },
+    {
+      'label': 'Oil Press',
+      'type': 'text',
+      'name': 'oil_press',
+      'required': true,
+    },
+    {
+      'label': 'Hz',
+      'type': 'number',
+      'name': 'hz',
+      'required': true,
+    },
+    {
+      'label': 'P.F',
+      'type': 'text',
+      'name': 'p_f',
+      'required': true,
+    },
+    {
+      'label': 'Volt RY',
+      'type': 'text',
+      'name': 'volt_ry',
+      'required': true,
+    },
+    {
+      'label': 'Volt YB',
+      'type': 'number',
+      'name': 'volt_yb',
+      'required': true,
+    },
+    {
+      'label': 'Volt BR',
+      'type': 'text',
+      'name': 'volt_br',
+      'required': true,
+    },
+    {
+      'label': 'Amps R',
+      'type': 'text',
+      'name': 'amps_r',
+      'required': true,
+    },
+    {
+      'label': 'Amps Y',
+      'type': 'text',
+      'name': 'apms_y',
+      'required': true,
+    },
+    {
+      'label': 'Amps B',
+      'type': 'number',
+      'name': 'amps_b',
+      'required': true,
+    },
+    {
+      'label': 'KW',
+      'type': 'text',
+      'name': 'kw',
+      'required': true,
+    },
+    {
+      'label': 'Battery Voltage',
+      'type': 'text',
+      'name': 'battery_voltage',
+      'required': true,
+    },
+    {
+      'label': 'Remarks',
+      'type': 'textarea',
+      'name': 'remarks',
+      'required': true,
+    }
+  ],
 };
 
 final activeFormStageProvider = StateProvider.autoDispose<int>((ref) => 0);
@@ -337,7 +436,7 @@ class _ServiceFormScreenState extends ConsumerState<ServiceFormScreen> {
                             globalKey: fieldKey,
                             serviceId: widget.serviceId,
                             fieldName: fieldName,
-                            fieldValue: value ?? '',
+                            fieldValue: value,
                             fieldLabel: fieldLabel,
                             fieldDescription: '',
                             fieldId: fieldKey.toString(),
@@ -361,33 +460,19 @@ class _ServiceFormScreenState extends ConsumerState<ServiceFormScreen> {
                           children: [
                             if (formStage != 0) ...[
                               Expanded(
-                                child: ElevatedButton(
-                                    style: ButtonStyle(
-                                        backgroundColor:
-                                            MaterialStateColor.resolveWith(
-                                                (Set<MaterialState> states) =>
-                                                    Colors.blue.shade700),
-                                        shape: MaterialStateProperty.all(
-                                          RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8.0),
-                                          ),
-                                        )),
-                                    onPressed: () {
-                                      ref
-                                          .read(
-                                              activeFormStageProvider.notifier)
-                                          .update((state) {
-                                        if (state > 0) {
-                                          return state - 1;
-                                        }
-                                        return state;
-                                      });
-                                    },
-                                    child: const Text(
-                                      'Previous',
-                                      style: TextStyle(color: Colors.white),
-                                    )),
+                                child: CustomButton(
+                                  text: 'Previous',
+                                  onClick: () {
+                                    ref
+                                        .read(activeFormStageProvider.notifier)
+                                        .update((state) {
+                                      if (state > 0) {
+                                        return state - 1;
+                                      }
+                                      return state;
+                                    });
+                                  },
+                                ),
                               ),
                               const SizedBox(
                                 width: 20,
@@ -395,19 +480,9 @@ class _ServiceFormScreenState extends ConsumerState<ServiceFormScreen> {
                             ],
                             if (formStage == maxPageLimit)
                               Expanded(
-                                child: ElevatedButton(
-                                    style: ButtonStyle(
-                                        backgroundColor:
-                                            MaterialStateColor.resolveWith(
-                                                (Set<MaterialState> states) =>
-                                                    Colors.blue.shade700),
-                                        shape: MaterialStateProperty.all(
-                                          RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8.0),
-                                          ),
-                                        )),
-                                    onPressed: () {
+                                child: CustomButton(
+                                    text: 'Submit Report',
+                                    onClick: () {
                                       showMyDialog(
                                           ctx: context,
                                           onSubmit: () async {
@@ -417,30 +492,16 @@ class _ServiceFormScreenState extends ConsumerState<ServiceFormScreen> {
                                                 .publishServiceReport(
                                                     widget.serviceId)
                                                 .then((value) {
-                                              Navigator.of(context).pop();
+                                              // Navigator.of(context).pop();
                                             });
                                           });
-                                    },
-                                    child: const Text(
-                                      'Submit Report',
-                                      style: TextStyle(color: Colors.white),
-                                    )),
+                                    }),
                               )
                             else
                               Expanded(
-                                child: ElevatedButton(
-                                    style: ButtonStyle(
-                                        backgroundColor:
-                                            MaterialStateColor.resolveWith(
-                                                (Set<MaterialState> states) =>
-                                                    Colors.blue.shade700),
-                                        shape: MaterialStateProperty.all(
-                                          RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8.0),
-                                          ),
-                                        )),
-                                    onPressed: () {
+                                child: CustomButton(
+                                    text: 'Next',
+                                    onClick: () {
                                       ref
                                           .read(
                                               activeFormStageProvider.notifier)
@@ -450,12 +511,8 @@ class _ServiceFormScreenState extends ConsumerState<ServiceFormScreen> {
                                         }
                                         return state;
                                       });
-                                    },
-                                    child: const Text(
-                                      'Next',
-                                      style: TextStyle(color: Colors.white),
-                                    )),
-                              )
+                                    }),
+                              ),
                           ],
                         )),
                   ),
@@ -478,7 +535,7 @@ Future<void> showMyDialog({
       context: ctx,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Alert dialog'),
+          title: const Text('Submit Report'),
           content: const SingleChildScrollView(
             child: ListBody(
               children: <Widget>[

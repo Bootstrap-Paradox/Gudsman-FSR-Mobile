@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:gudsman_service/main.dart';
 import 'package:gudsman_service/utils/exceptions/unauthorized_exception.dart';
@@ -76,6 +77,57 @@ class HttpReq {
     if (response.statusCode == 401) {
       navigatorKey.currentState!.pushReplacementNamed('/login');
     }
+
+    return response;
+  }
+}
+
+class FileModel {
+  FileModel({required this.fieldName, required this.imagePath});
+  final String fieldName;
+  final String imagePath;
+
+  Future<http.MultipartFile> convert() async {
+    return http.MultipartFile.fromPath('', imagePath);
+  }
+}
+
+class HttpMultiPartReq {
+  static Future<http.StreamedResponse> multipart(
+      {method = 'post',
+      path = '',
+      Map<String, dynamic> body = const {}}) async {
+    final String accessToken = await SharedPref.getAccessToken();
+
+    final request = http.MultipartRequest(
+        method.toString().toUpperCase(), Uri.parse(baseURL + path));
+
+    final headers = {
+      'Content-Type': 'multipart/form-data',
+      'Authorization': 'Bearer $accessToken',
+    };
+    request.headers.addAll(headers);
+
+    body.forEach((sectionTitle, sectionValue) {
+      sectionValue.forEach((key, value) {
+        print(value.runtimeType);
+        if (value.runtimeType == String) {
+          request.fields.addAll({key: value});
+        } else {
+          print('file exists');
+          final uploadFile = File(value['value']);
+          request.files.add(http.MultipartFile(
+            key,
+            uploadFile.readAsBytes().asStream(),
+            uploadFile.lengthSync(),
+            filename: key,
+          ));
+        }
+      });
+    });
+
+    print(request.fields);
+    final response = await request.send();
 
     return response;
   }

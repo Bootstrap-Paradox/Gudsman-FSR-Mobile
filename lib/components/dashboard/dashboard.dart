@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gudsman_service/app/pages/home.dart';
 import 'package:gudsman_service/app/pages/new_service.dart';
 import 'package:gudsman_service/app/pages/service_form.dart';
+import 'package:gudsman_service/components/buttons/buttons.dart';
 import 'package:gudsman_service/utils/dataClass/report/report_form.dart';
 
 class DashboardComponent extends ConsumerStatefulWidget {
@@ -18,7 +19,8 @@ class DashboardComponent extends ConsumerStatefulWidget {
 class _DashboardComponentState extends ConsumerState<DashboardComponent> {
   @override
   Widget build(BuildContext context) {
-    final serviceReportList = ref.watch(serviceReportListProvider);
+    final activeReport = ref.watch(activeServiceReport);
+    final recentReports = ref.watch(recentServiceReports);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -26,10 +28,28 @@ class _DashboardComponentState extends ConsumerState<DashboardComponent> {
         const SizedBox(
           height: 30,
         ),
+        if (activeReport != null)
+          Column(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  'Ongoing Report',
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).primaryColor),
+                ),
+              ),
+              LiveReportBlock(report: activeReport),
+            ],
+          ),
+        const SizedBox(width: 20),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(
-            'Ongoing Report',
+            'Recent Reports',
             textAlign: TextAlign.left,
             style: TextStyle(
                 fontSize: 16,
@@ -38,33 +58,27 @@ class _DashboardComponentState extends ConsumerState<DashboardComponent> {
           ),
         ),
         const SizedBox(width: 20),
-        const SizedBox(width: 20),
-        ListView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          scrollDirection: Axis.vertical,
-          shrinkWrap: true,
-          itemCount: serviceReportList.length,
-          itemBuilder: (context, index) {
-            return ReportBlock(report: serviceReportList[index]);
-          },
-        ),
-        !serviceReportList.isNotEmpty
-            ? Text('No Ongoing Report [Work in Progress]',
-                style: TextStyle(
-                  color: Colors.grey.shade500,
-                  fontSize: 14,
-                ))
-            : const SizedBox(),
-        // Center(
-        //   child: ElevatedButton(
-        //       onPressed: () {
-        //         ref
-        //             .read(serviceReportListProvider.notifier)
-        //             .fetchServiceReports();
-
-        //         // print(ref.watch(orgFetchProvider).value?.id);
-        //       },
-        //       child: const Text('Refresh Reports')),
+        if (recentReports != null) ...[
+          ListView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            itemCount: recentReports.length,
+            itemBuilder: (context, index) {
+              return ReportBlock(report: recentReports[index]);
+            },
+          ),
+        ] else
+          const Center(
+              child: Padding(
+            padding: EdgeInsets.all(12.0),
+            child: Text('No recent reports'),
+          )),
+        // CustomButton(
+        //   text: 'Fetch Reports',
+        //   onClick: () {
+        //     ref.read(serviceReportListProvider.notifier).fetchServiceReports();
+        //   },
         // )
       ],
     );
@@ -116,8 +130,8 @@ class _DashboardInfoBlockState extends State<DashboardInfoBlock> {
   }
 }
 
-class ReportBlock extends ConsumerStatefulWidget {
-  const ReportBlock({
+class LiveReportBlock extends ConsumerStatefulWidget {
+  const LiveReportBlock({
     super.key,
     required this.report,
   });
@@ -125,10 +139,11 @@ class ReportBlock extends ConsumerStatefulWidget {
   final ServiceReport report;
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _ReportBlockState();
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _LiveReportBlockState();
 }
 
-class _ReportBlockState extends ConsumerState<ReportBlock> {
+class _LiveReportBlockState extends ConsumerState<LiveReportBlock> {
   Duration elapsedTime = Duration.zero;
   late Timer timer;
 
@@ -239,6 +254,110 @@ class _ReportBlockState extends ConsumerState<ReportBlock> {
                                 const MaterialStatePropertyAll(Colors.white),
                           ),
                           child: const Text('Continue'))
+                    ]),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ReportBlock extends ConsumerWidget {
+  const ReportBlock({super.key, required this.report});
+
+  final ServiceReport report;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+      child: Container(
+        // height: 150,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFFFF),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              spreadRadius: 6,
+              blurRadius: 16,
+              offset: const Offset(2, 2),
+            ),
+          ],
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          report.customerName,
+                          style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF1C1C1C)),
+                        ),
+                        Text(
+                          serviceTypes[report.serviceType] ??
+                              'Field Service Report',
+                          style: const TextStyle(
+                              color: Color(0xFF42495B), fontSize: 14),
+                        ),
+                        if (report.itemName != '') ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            'Report of : ${report.itemName}',
+                            style: const TextStyle(
+                                color: Color(0xFF42495B), fontSize: 14),
+                          ),
+                        ]
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(0),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6.0, vertical: 1.0),
+                        child: Text(
+                          report.endTime != null
+                              ? '${report.endTime?.difference(report.startTime).inHours.toString()} hour, ${(report.endTime?.difference(report.startTime).inMinutes).toString()} min'
+                              : '00:00',
+                          style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Color.fromARGB(255, 118, 127, 150)),
+                        ),
+                      ),
+                      if (report.endTime != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6.0, vertical: 1.0),
+                          child: Text(
+                            '${report.endTime?.day.toString()}-${report.endTime?.month.toString()}-${report.endTime?.year.toString()}',
+                            style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Color.fromARGB(255, 118, 127, 150)),
+                          ),
+                        ),
                     ]),
               ),
             ],

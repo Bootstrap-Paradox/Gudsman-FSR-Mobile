@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gudsman_service/app/pages/home.dart';
 import 'package:gudsman_service/utils/dataClass/report/report_details.dart';
 import 'package:gudsman_service/utils/http_req.dart';
 
@@ -52,17 +53,19 @@ class ServiceReportList extends StateNotifier<List<ServiceReport>> {
 
     final Map<String, dynamic> responseBody = json.decode(response.body);
 
+    final ServiceReport newReport = ServiceReport(
+        serviceId: responseBody['service_id'] ?? '12345678',
+        status: responseBody['service_status'],
+        itemId: responseBody['item_id'] ?? '',
+        itemName: responseBody['item_name'] ?? '',
+        startTime: DateTime.now(),
+        customerName: reportDetails['customer_name'] ?? 'testing Feature',
+        serviceType: reportType,
+        reportDetails: reportDetails);
+
     state = [
       ...state,
-      ServiceReport(
-          serviceId: responseBody['service_id'] ?? '12345678',
-          status: responseBody['service_status'],
-          itemId: responseBody['item_id'] ?? '',
-          itemName: responseBody['item_name'] ?? '',
-          startTime: DateTime.now(),
-          customerName: reportDetails['customer_name'] ?? 'testing Feature',
-          serviceType: reportType,
-          reportDetails: reportDetails)
+      newReport,
     ];
     return responseBody['service_id'];
   }
@@ -80,31 +83,34 @@ class ServiceReportList extends StateNotifier<List<ServiceReport>> {
   }
 
   Future<void> publishServiceReport(String serviceId) async {
-    final response = await HttpReq.put(
+    final response = await HttpMultiPartReq.multipart(
+        method: 'put',
         path: '/api/v1/$orgId/field-service-report',
         body: state
             .firstWhere((element) => element.serviceId == serviceId)
             .reportDetails);
 
-    final responseBody = await json.decode(response.body);
-    print(responseBody);
+    // final responseBody = await json.decode(response.stream);
+    await for (var chunk in response.stream.transform(utf8.decoder)) {
+      print(chunk);
+    }
 
-    state = [
-      for (final report in state)
-        if (report.serviceId == serviceId)
-          ServiceReport(
-              serviceId: report.serviceId,
-              itemId: report.itemId,
-              itemName: report.itemName,
-              status: 'complete',
-              endTime: DateTime.parse(responseBody['endTime']),
-              customerName: report.customerName,
-              startTime: report.startTime,
-              serviceType: report.serviceType,
-              reportDetails: report.reportDetails)
-        else
-          report
-    ];
+    // state = [
+    //   for (final report in state)
+    //     if (report.serviceId == serviceId)
+    //       ServiceReport(
+    //           serviceId: report.serviceId,
+    //           itemId: report.itemId,
+    //           itemName: report.itemName,
+    //           status: 'complete',
+    //           endTime: DateTime.parse(responseBody['endTime']),
+    //           customerName: report.customerName,
+    //           startTime: report.startTime,
+    //           serviceType: report.serviceType,
+    //           reportDetails: report.reportDetails)
+    //     else
+    //       report
+    // ];
   }
 
   void updateServiceReport(
@@ -135,7 +141,7 @@ class ServiceReportList extends StateNotifier<List<ServiceReport>> {
 
 Future<List<ServiceReport>> getServiceReportDetails(String orgId) async {
   http.Response response = await HttpReq.get(
-      path: '/api/v1/$orgId/field-service-report?active=true',
+      path: '/api/v1/$orgId/field-service-report',
       headers: {},
       authorized: true);
 
@@ -152,6 +158,7 @@ Future<List<ServiceReport>> getServiceReportDetails(String orgId) async {
           status: e['service_status'],
           customerName: e['customer_name'],
           startTime: DateTime.parse(e['start_date']),
+          endTime: e['end_date'] != null ? DateTime.parse(e['end_date']) : null,
           serviceType: ReportTypes.values.firstWhere((element) {
             return element.toString().split('.').last == e['service_type'];
           }),

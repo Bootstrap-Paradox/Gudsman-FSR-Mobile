@@ -6,10 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gudsman_service/components/custom_appbar.dart';
 
 class NewCameraScreen extends ConsumerStatefulWidget {
-  const NewCameraScreen(
-      {super.key, required this.cameras, required this.onChanged});
+  const NewCameraScreen({super.key, required this.onChanged});
 
-  final List<CameraDescription> cameras;
   final Function(String value) onChanged;
 
   @override
@@ -21,25 +19,20 @@ class _NewCameraScreenState extends ConsumerState<NewCameraScreen> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
 
+  // void _initializeCamera() async {
+  //   _availableCameras = availableCameras();
+  //   _controller = await CameraController(_availableCameras[0], resolutionPreset)
+  // }
+
+  Future<void> _initializeCamera() async {
+    final cameras = await availableCameras();
+    _controller = CameraController(cameras[0], ResolutionPreset.medium);
+    _initializeControllerFuture = _controller.initialize();
+  }
+
   @override
   void initState() {
     super.initState();
-
-    // availableCameras().then((cameras) {
-    //   _controller = CameraController(cameras[0], ResolutionPreset.medium);
-    //   _initializeControllerFuture = _controller.initialize();
-    // });
-
-    _controller = CameraController(widget.cameras[0], ResolutionPreset.medium);
-
-    // _availableCameras = getCameras();
-
-    // _controller =
-    //     CameraController(_availableCameras[0], ResolutionPreset.medium);
-
-    // // _initializeCamera();
-
-    _initializeControllerFuture = _controller.initialize();
   }
 
   @override
@@ -54,16 +47,25 @@ class _NewCameraScreenState extends ConsumerState<NewCameraScreen> {
       appBar: CustomAppBar(
         title: 'Gudsman Service',
       ),
-      body: FutureBuilder<void>(
-        future: _initializeControllerFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return CameraPreview(_controller);
-          } else {
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
-      ),
+      body: FutureBuilder(
+          future: _initializeCamera(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return FutureBuilder<void>(
+                future: _initializeControllerFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    return CameraPreview(_controller);
+                  } else {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                },
+              );
+            }
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           try {
@@ -75,9 +77,14 @@ class _NewCameraScreenState extends ConsumerState<NewCameraScreen> {
 
             widget.onChanged(image.path);
 
-            await Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) =>
-                    DisplayCameraPictureScreen(imagePath: image.path)));
+            await Navigator.of(context).pushReplacement(
+              PageRouteBuilder(
+                  pageBuilder: (context, animation1, animation2) =>
+                      DisplayCameraPictureScreen(
+                          onChanged: widget.onChanged, imagePath: image.path),
+                  transitionDuration: Duration.zero,
+                  reverseTransitionDuration: Duration.zero),
+            );
           } catch (e) {
             print(e);
           }
@@ -90,28 +97,45 @@ class _NewCameraScreenState extends ConsumerState<NewCameraScreen> {
 }
 
 class DisplayCameraPictureScreen extends ConsumerWidget {
-  const DisplayCameraPictureScreen({super.key, required this.imagePath});
+  const DisplayCameraPictureScreen(
+      {super.key, required this.onChanged, required this.imagePath});
 
+  final Function(String path) onChanged;
   final String imagePath;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Gudsman Reports')),
+      appBar: CustomAppBar(title: 'Gudsman Reports'),
       // The image is stored as a file on the device. Use the `Image.file`
       // constructor with the given path to display the image.
-      body: Image.file(File(imagePath)),
-      floatingActionButton: ButtonBar(children: [
-        FloatingActionButton(
-          onPressed: () {
-            // should pop twice
-            Navigator.of(context).pop();
-          },
-          child: const Text('Save'),
-        ),
-        FloatingActionButton(onPressed: () {}, child: const Icon(Icons.repeat)),
-      ]),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      body: Column(
+        children: [
+          Image.file(File(imagePath)),
+          ButtonBar(
+            alignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(2);
+                },
+                child: const Text('Save'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushReplacement(PageRouteBuilder(
+                    pageBuilder: (context, animation1, animation2) =>
+                        NewCameraScreen(onChanged: onChanged),
+                    transitionDuration: Duration.zero,
+                    reverseTransitionDuration: Duration.zero,
+                  ));
+                },
+                child: const Icon(Icons.repeat),
+              ),
+            ],
+          )
+        ],
+      ),
     );
   }
 }

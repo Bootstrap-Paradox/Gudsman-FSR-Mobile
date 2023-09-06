@@ -13,11 +13,26 @@ final orgFetchProvider =
 
 final orgProvider = StateProvider<OrganizationModel?>((ref) => null);
 
-final activeServiceReport = StateProvider<ServiceReport?>((ref) => null);
-
 final serviceReportListProvider =
     StateNotifierProvider<ServiceReportList, List<ServiceReport>>((ref) {
   return ServiceReportList(ref.watch(orgFetchProvider).value?.id ?? '', []);
+});
+
+final activeServiceReport = StateProvider<ServiceReport?>((ref) {
+  final reports = ref.watch(serviceReportListProvider);
+  if (reports.isEmpty) {
+    return null;
+  }
+  return reports.firstWhere((element) => element.status == 'active');
+});
+
+final recentServiceReports = StateProvider<List<ServiceReport>?>((ref) {
+  final reports = ref.watch(serviceReportListProvider);
+  if (reports.isEmpty) {
+    return null;
+  }
+  // will contain all reports except for the active ones
+  return reports.where((element) => element.status != 'active').toList();
 });
 
 class HomeScreen extends ConsumerStatefulWidget {

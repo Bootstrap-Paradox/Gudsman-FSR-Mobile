@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:gudsman_service/components/buttons/buttons.dart';
 import 'package:gudsman_service/components/custom_appbar.dart';
 import 'package:gudsman_service/utils/http_req.dart';
 
@@ -59,73 +60,80 @@ class _LoginState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Gudsman Reports',
-      ),
-      body: Center(
-          child: Column(
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(20.0),
-            child: Text(
-              'Login',
-              style: TextStyle(fontSize: 60),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: TextField(
-              keyboardType: TextInputType.emailAddress,
-              controller: _emailController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Email',
-              ),
-            ),
-          ),
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
-            child: TextField(
-              controller: _passwordController,
-              autocorrect: false,
-              obscureText: true,
-              enableSuggestions: false,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Password',
-              ),
-            ),
-          ),
-          ElevatedButton(
-              onPressed: () {
-                saveEmail();
-                AuthHttpRequest.login({
-                  'email': _emailController.text,
-                  'password': _passwordController.text,
-                }).then((response) {
-                  if (response.statusCode == 200) {
-                    Navigator.of(context).pushReplacementNamed('/home');
-                  }
-                });
-              },
-              child: const Text('Login')),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+      appBar: CustomAppBar(),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          child: Center(
+              child: Column(
             children: [
-              const Text('Don\'t have an account?'),
-              TextButton(
-                onPressed: () {
-                  // @ignore: avoid_print
-                  print('Accessing the Token');
-                  SharedPref.getAccessToken().then((value) => print(value));
-                },
-                child: const Text('Register'),
-              )
+              const Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Text(
+                  'Login',
+                  style: TextStyle(fontSize: 60),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: TextField(
+                  keyboardType: TextInputType.emailAddress,
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Email',
+                  ),
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+                child: TextField(
+                  controller: _passwordController,
+                  autocorrect: false,
+                  obscureText: true,
+                  enableSuggestions: false,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Password',
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: CustomButton(
+                  text: 'Login',
+                  onClick: () {
+                    saveEmail();
+                    AuthHttpRequest.login({
+                      'email': _emailController.text,
+                      'password': _passwordController.text,
+                    }).then((response) {
+                      if (response.statusCode == 200) {
+                        Navigator.of(context).pushReplacementNamed('/home');
+                      }
+                    });
+                  },
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Don\'t have an account?'),
+                  TextButton(
+                    onPressed: () {
+                      // @ignore: avoid_print
+                      print('Accessing the Token');
+                      SharedPref.getAccessToken().then((value) => print(value));
+                    },
+                    child: const Text('Register'),
+                  )
+                ],
+              ),
             ],
-          ),
-        ],
-      )),
+          )),
+        ),
+      ),
     );
   }
 }

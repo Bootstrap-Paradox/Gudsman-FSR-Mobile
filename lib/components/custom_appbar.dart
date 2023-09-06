@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 class CustomAppBar extends AppBar {
-  CustomAppBar({super.key, required String title, actions})
+  CustomAppBar({super.key, String? title, actions, Color? color})
       : super(
           iconTheme: const IconThemeData(
             color: Colors.black, //change your color here
           ),
-          backgroundColor: const Color(0xFFF5F5F5),
+          backgroundColor: color ?? const Color(0xFFFFFFFF),
           title: Text(
-            title,
+            title ?? 'Gudsman Reports',
             style: const TextStyle(color: Colors.black),
           ),
           actions: actions,

@@ -5,12 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gudsman_service/app/pages/home.dart';
 import 'package:gudsman_service/app/pages/service_form.dart';
+import 'package:gudsman_service/components/buttons/buttons.dart';
 import 'package:gudsman_service/components/custom_appbar.dart';
 import 'package:gudsman_service/components/formComponents/fetch_select.dart';
-import 'package:gudsman_service/utils/dataClass/customer.dart';
 import 'package:gudsman_service/utils/dataClass/report/report_details.dart';
 import 'package:gudsman_service/utils/http_req.dart';
-import 'package:http/http.dart' as http;
 
 final reportTypeProvider =
     StateProvider<ReportTypes>((ref) => ReportTypes.maintenance);
@@ -128,41 +127,29 @@ class _NewServiceScreenState extends ConsumerState<NewServiceScreen> {
                       )),
 
                   const SizedBox(height: 20),
-                  ElevatedButton(
-                      style: ButtonStyle(
-                          backgroundColor: MaterialStateColor.resolveWith(
-                              (Set<MaterialState> states) =>
-                                  Colors.blue.shade700),
-                          shape: MaterialStateProperty.all(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                          )),
-                      child: const Text(
-                        'Start Report Workflow',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      onPressed: () async {
-                        // Navigator.pushReplacement(context, );
+                  CustomButton(
+                    text: 'Start Report Workflow',
+                    onClick: () {
+                      ref
+                          .read(serviceReportListProvider.notifier)
+                          .newServiceReport(reportType, {
+                        'customer_name': customerSelect.name,
+                        'customer_id': customerSelect.id,
+                        'item_id': itemSelect.id,
+                        'item_name': itemSelect.name,
+                        'service_location': locationController.text,
+                      }).then((value) {
+                        Navigator.pushReplacement(context, MaterialPageRoute(
+                          builder: (context) {
+                            return ServiceFormScreen(
+                              serviceId: value,
+                            );
+                          },
+                        ));
+                      });
+                    },
+                  ),
 
-                        ref
-                            .read(serviceReportListProvider.notifier)
-                            .newServiceReport(reportType, {
-                          'customer_name': customerSelect.name,
-                          'customer_id': customerSelect.id,
-                          'item_id': itemSelect.id,
-                          'item_name': itemSelect.name,
-                          'service_location': locationController.text,
-                        }).then((value) {
-                          Navigator.pushReplacement(context, MaterialPageRoute(
-                            builder: (context) {
-                              return ServiceFormScreen(
-                                serviceId: value,
-                              );
-                            },
-                          ));
-                        });
-                      }),
                   const SizedBox(height: 20),
                   const Text(
                     'Note: Reports are Time Tracked',

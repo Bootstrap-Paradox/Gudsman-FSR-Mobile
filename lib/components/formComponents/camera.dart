@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gudsman_service/components/cameraScreen/camera_screen.dart';
@@ -43,13 +42,10 @@ class _CameraInputState extends ConsumerState<CameraInput> {
         ElevatedButton(
           onPressed: () {
             // Open Camera Screen
-            availableCameras().then((value) {
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => NewCameraScreen(
-                        cameras: value,
-                        onChanged: widget.onChanged,
-                      )));
-            });
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => NewCameraScreen(
+                      onChanged: widget.onChanged,
+                    )));
           },
           child: Icon(
             Icons.camera_alt,

@@ -17,7 +17,7 @@ class FieldAnalyzer extends ConsumerStatefulWidget {
   final String fieldType;
   final String fieldDescription;
   final Map<String, dynamic> defaultData;
-  final String fieldValue;
+  final dynamic fieldValue;
   final String serviceId;
 
   const FieldAnalyzer(
@@ -53,7 +53,7 @@ class _FieldAnalyzerState extends ConsumerState<FieldAnalyzer> {
       return TextInput(
         globalKey: widget.globalKey,
         fieldLabel: widget.fieldLabel,
-        fieldValue: widget.fieldValue,
+        fieldValue: widget.fieldValue ?? '',
         onChanged: (value) {
           updateFields(value, formStage);
         },
@@ -64,7 +64,7 @@ class _FieldAnalyzerState extends ConsumerState<FieldAnalyzer> {
       return NumberInput(
         globalKey: widget.globalKey,
         fieldLabel: widget.fieldLabel,
-        fieldValue: widget.fieldValue,
+        fieldValue: widget.fieldValue ?? '',
         onChanged: (value) {
           updateFields(value, formStage);
         },
@@ -75,7 +75,7 @@ class _FieldAnalyzerState extends ConsumerState<FieldAnalyzer> {
       return TextareaInput(
         globalKey: widget.globalKey,
         fieldLabel: widget.fieldLabel,
-        fieldValue: widget.fieldValue,
+        fieldValue: widget.fieldValue ?? '',
         onChanged: (value) {
           updateFields(value, formStage);
         },
@@ -85,7 +85,7 @@ class _FieldAnalyzerState extends ConsumerState<FieldAnalyzer> {
     if (widget.fieldType == 'select') {
       return SelectInput(
           globalKey: widget.globalKey,
-          fieldValue: widget.fieldValue,
+          fieldValue: widget.fieldValue ?? '',
           fieldLabel: widget.fieldLabel,
           onChanged: (value) {
             updateFields(value, formStage);
@@ -97,7 +97,7 @@ class _FieldAnalyzerState extends ConsumerState<FieldAnalyzer> {
       return RadioInput(
         items: widget.defaultData['defaultList'],
         fieldLabel: widget.fieldLabel,
-        fieldValue: widget.fieldValue,
+        fieldValue: widget.fieldValue ?? '',
         onChanged: (value) {
           updateFields(value, formStage);
         },
@@ -108,9 +108,12 @@ class _FieldAnalyzerState extends ConsumerState<FieldAnalyzer> {
       return CameraInput(
         globalKey: widget.globalKey,
         fieldLabel: widget.fieldLabel,
-        fieldValue: widget.fieldValue,
-        onChanged: (value) {
-          updateFields(value, formStage);
+        fieldValue: widget.fieldValue?['value'] ?? '',
+        onChanged: (String value) {
+          updateFields({
+            'type': 'image',
+            'value': value,
+          }, formStage);
         },
       );
     }

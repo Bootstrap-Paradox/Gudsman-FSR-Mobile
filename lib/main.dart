@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gudsman_service/app/app.dart';
 import 'package:gudsman_service/app/pages/home.dart';
 import 'package:gudsman_service/auth/logout.dart';
+import 'package:gudsman_service/auth/onboarding.dart';
 
 import 'app/pages/new_service.dart';
 import 'auth/login.dart';
@@ -56,7 +57,7 @@ class MyApp extends StatelessWidget {
           seedColor: const Color(0xFF34495E),
           primary: const Color(0xFF34495E),
           secondary: const Color(0xFF00E676),
-          background: const Color(0xFFF5F5F5),
+          background: const Color(0xFFFFFFFF),
           surface: const Color(0xFFFFFFFF),
         ),
         useMaterial3: true,
@@ -65,6 +66,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/app': (context) => const AppScreen(),
         '/login': (context) => const LoginScreen(),
+        '/onboard': (context) => const OnBoardingScreen(),
         '/home': (context) => const HomeScreen(),
         '/new_service': (context) => const NewServiceScreen(),
         // '/service-form': (context) => const ServiceFormScreen(),
