@@ -7,6 +7,7 @@ import 'package:gudsman_service/components/custom_appbar.dart';
 import 'package:gudsman_service/components/formComponents/inputAnalyzer/field_analyzer.dart';
 import 'package:gudsman_service/utils/converts.dart';
 import 'package:gudsman_service/utils/dataClass/report/report_form.dart';
+import 'package:gudsman_service/utils/http_req.dart';
 
 final Map<String, List<Map<String, dynamic>>> serviceFormSchema = {
   "conditions_of": [
@@ -422,6 +423,8 @@ class _ServiceFormScreenState extends ConsumerState<ServiceFormScreen> {
     final maxPageLimit = serviceFormSchema.length - 1;
     final serviceReportsList = ref.watch(serviceReportListProvider);
 
+    TextEditingController emailToSend = TextEditingController();
+
     String sectionTitle =
         serviceFormSchema.entries.map((e) => e.key).toList()[formStage];
 
@@ -435,17 +438,37 @@ class _ServiceFormScreenState extends ConsumerState<ServiceFormScreen> {
         appBar: CustomAppBar(
           title: serviceTypes[ref.read(reportTypeProvider)] ??
               'Field Service Report',
-          // actions: [
-          //   if (widget.readOnly)
-          //     IconButton(
-          //         onPressed: () {
-          //           Navigator.of(context).pushReplacement(MaterialPageRoute(
-          //               builder: (context) => ServiceFormScreen(
-          //                     serviceId: widget.serviceId,
-          //                   )));
-          //         },
-          //         icon: const Icon(Icons.edit))
-          // ],
+          actions: [
+            if (widget.readOnly) ...[
+              // IconButton(
+              //     onPressed: () {
+              //       Navigator.of(context).pushReplacement(MaterialPageRoute(
+              //           builder: (context) => ServiceFormScreen(
+              //                 serviceId: widget.serviceId,
+              //               )));
+              //     },
+              //     icon: const Icon(Icons.edit)),
+              IconButton(
+                  onPressed: () {
+                    showMyDialog(
+                        ctx: context,
+                        title: const Text('Mail Report'),
+                        content: TextFormField(
+                          controller: emailToSend,
+                          decoration: const InputDecoration(
+                              hintText: 'Enter Email Address'),
+                        ),
+                        onSubmit: () async {
+                          HttpReq.post(
+                              '/api/v1/${ref.watch(orgProvider)?.id}/field-service-report/${widget.serviceId}/mail',
+                              {'email': emailToSend.text},
+                              {},
+                              authorized: true);
+                        });
+                  },
+                  icon: const Icon(Icons.mail_rounded))
+            ]
+          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -547,6 +570,9 @@ class _ServiceFormScreenState extends ConsumerState<ServiceFormScreen> {
                                     onClick: () {
                                       showMyDialog(
                                           ctx: context,
+                                          title: const Text('Submit Report'),
+                                          content: const Text(
+                                              'Do you want to Submit this report?'),
                                           onSubmit: () async {
                                             await ref
                                                 .read(serviceReportListProvider
@@ -597,17 +623,19 @@ class _ServiceFormScreenState extends ConsumerState<ServiceFormScreen> {
 
 Future<void> showMyDialog({
   required BuildContext ctx,
+  required Widget title,
+  Widget? content,
   Function? onSubmit,
 }) async {
   return showDialog(
       context: ctx,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Submit Report'),
-          content: const SingleChildScrollView(
+          title: title,
+          content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Do you want to submit the Report'),
+                content!,
               ],
             ),
           ),
