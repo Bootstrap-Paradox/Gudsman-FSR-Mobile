@@ -5,6 +5,7 @@ import 'package:gudsman_service/app/app.dart';
 import 'package:gudsman_service/app/pages/home.dart';
 import 'package:gudsman_service/auth/logout.dart';
 import 'package:gudsman_service/auth/onboarding.dart';
+import 'package:gudsman_service/components/cameraScreen/camera_screen.dart';
 
 import 'app/pages/new_service.dart';
 import 'auth/login.dart';

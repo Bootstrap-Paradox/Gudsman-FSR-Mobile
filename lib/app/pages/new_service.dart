@@ -84,10 +84,10 @@ class _NewServiceScreenState extends ConsumerState<NewServiceScreen> {
                       elementIdKey: 'customer_id',
                       elementDisplayKey: 'customer_display_name',
                       asyncItemsFetch: (filter) async {
-                        final orgData = ref.watch(orgProvider);
+                        final orgData = ref.watch(orgFetchProvider);
                         final response = await HttpReq.get(
                           path:
-                              '/api/v1/${orgData?.id}/customer?search=$filter',
+                              '/api/v1/${orgData.value?.id}/customer?search=$filter',
                           authorized: true,
                         );
                         return await json.decode(response.body)['customers'];
@@ -104,9 +104,10 @@ class _NewServiceScreenState extends ConsumerState<NewServiceScreen> {
                       elementIdKey: 'item_id',
                       elementDisplayKey: '_name',
                       asyncItemsFetch: (filter) async {
-                        final orgData = ref.watch(orgProvider);
+                        final orgData = ref.watch(orgFetchProvider);
                         final response = await HttpReq.get(
-                          path: '/api/v1/${orgData?.id}/item?search=$filter',
+                          path:
+                              '/api/v1/${orgData.value?.id}/item?search=$filter',
                           authorized: true,
                         );
                         final responseBody = json.decode(response.body);

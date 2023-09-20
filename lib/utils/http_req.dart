@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:gudsman_service/main.dart';
 import 'package:gudsman_service/utils/exceptions/unauthorized_exception.dart';
@@ -107,30 +108,81 @@ class HttpMultiPartReq {
       'Authorization': 'Bearer $accessToken',
     };
     request.headers.addAll(headers);
+    // request.fields.addAll(body);
 
-    body.forEach((sectionTitle, sectionValue) {
-      sectionValue.forEach((key, value) {
-        print(value.runtimeType);
+    dynamic check(Map<dynamic, dynamic> body) {
+      final newBody = Map.from(body);
+      body.forEach((key, value) {
+        newBody[key] = value;
         if (value.runtimeType == String) {
-          request.fields.addAll({key: value});
+        } else if (value.runtimeType == List) {
+        } else if (value.runtimeType == DateTime) {
         } else {
-          print('file exists');
-          final uploadFile = File(value['value']);
-          request.files.add(http.MultipartFile(
-            key,
-            uploadFile.readAsBytes().asStream(),
-            uploadFile.lengthSync(),
-            filename: key,
-          ));
+          if (value['type'] == 'image') {
+            final uploadFile = File(value['value']);
+            // final fileName = value['value'].split('/').last;
+            request.files.add(http.MultipartFile('${value['value']}',
+                uploadFile.readAsBytes().asStream(), uploadFile.lengthSync(),
+                filename: key));
+            // newBody[key]['value'] = fileName;
+          } else if (value['type'] == 'signature') {
+            request.files.add(http.MultipartFile.fromBytes(
+                '$key.png', Uint8List.fromList(base64.decode(value['value'])),
+                filename: '$key.png'));
+          }
+          value['value'] = '$key.png';
+          check(value);
         }
       });
-    });
+      return newBody;
+    }
 
-    print(request.fields);
+    check(body);
+
+    request.fields
+        .addAll({'report': json.encode(body, toEncodable: myEncoder)});
+
+    // request.files.addAll([
+    //   for (final file in body.entries)
+    //     if (file.value.runtimeType == FileModel)
+    //       http.MultipartFile(
+    //         '${file.value.fieldName}',
+    //         File(file.value.imagePath).readAsBytes().asStream(),
+    //         File(file.value.imagePath).lengthSync(),
+    //         filename: file.value.imagePath.split('/').last,
+    //       ),
+    // ]);
+
+    // body.forEach((sectionTitle, sectionValue) {
+    //   sectionValue.forEach((key, value) {
+    //     print(value.runtimeType);
+    //     if (value.runtimeType == String) {
+    //       request.fields.addAll({'$sectionTitle.$key': value});
+    //     } else {
+    //       print('file exists');
+    //       final uploadFile = File(value['value']);
+    //       request.files.add(http.MultipartFile(
+    //         '$sectionTitle.$key',
+    //         uploadFile.readAsBytes().asStream(),
+    //         uploadFile.lengthSync(),
+    //         filename: key,
+    //       ));
+    //     }
+    //   });
+    // });
+
+    // print(request.fields);
     final response = await request.send();
 
     return response;
   }
+}
+
+dynamic myEncoder(dynamic item) {
+  if (item is DateTime) {
+    return item.toIso8601String();
+  }
+  return item;
 }
 
 class AuthHttpRequest {

@@ -28,7 +28,7 @@ class CustomButtonState extends ConsumerState<CustomButton> {
     return ElevatedButton(
         style: ButtonStyle(
           backgroundColor: MaterialStateProperty.all(
-            const Color(0xFF0D29FF),
+            const Color(0xFF1E52A2),
           ),
           minimumSize: MaterialStateProperty.all(
             const Size(120, 54),

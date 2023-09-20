@@ -28,8 +28,6 @@ class OrganizationNotifier
   }
 
   Future<void> fetchOrganizationData() async {
-    print('calling on build');
-
     try {
       final response = await HttpReq.get(
           path: '/api/v1/organization', headers: {}, authorized: true);

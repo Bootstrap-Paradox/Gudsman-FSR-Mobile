@@ -6,6 +6,7 @@ import 'package:gudsman_service/utils/dataClass/report/report_details.dart';
 import 'package:gudsman_service/utils/http_req.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class ServiceReport {
   const ServiceReport({
@@ -55,7 +56,7 @@ class ServiceReportList extends StateNotifier<List<ServiceReport>> {
 
     final ServiceReport newReport = ServiceReport(
         serviceId: responseBody['service_id'] ?? '12345678',
-        status: responseBody['service_status'],
+        status: responseBody['service_status'] ?? 'active',
         itemId: responseBody['item_id'] ?? '',
         itemName: responseBody['item_name'] ?? '',
         startTime: DateTime.now(),
@@ -72,6 +73,7 @@ class ServiceReportList extends StateNotifier<List<ServiceReport>> {
 
   void fetchServiceReports() async {
     final List<ServiceReport> reports = await getServiceReportDetails(orgId);
+    reports.sort((a, b) => b.startTime.compareTo(a.startTime));
     state = reports;
   }
 
@@ -85,32 +87,38 @@ class ServiceReportList extends StateNotifier<List<ServiceReport>> {
   Future<void> publishServiceReport(String serviceId) async {
     final response = await HttpMultiPartReq.multipart(
         method: 'put',
-        path: '/api/v1/$orgId/field-service-report',
+        path: '/api/v1/$orgId/field-service-report/$serviceId',
         body: state
             .firstWhere((element) => element.serviceId == serviceId)
             .reportDetails);
 
     // final responseBody = await json.decode(response.stream);
-    await for (var chunk in response.stream.transform(utf8.decoder)) {
-      print(chunk);
-    }
+    // await for (var chunk in response.stream.transform(utf8.decoder)) {}
 
-    // state = [
-    //   for (final report in state)
-    //     if (report.serviceId == serviceId)
-    //       ServiceReport(
-    //           serviceId: report.serviceId,
-    //           itemId: report.itemId,
-    //           itemName: report.itemName,
-    //           status: 'complete',
-    //           endTime: DateTime.parse(responseBody['endTime']),
-    //           customerName: report.customerName,
-    //           startTime: report.startTime,
-    //           serviceType: report.serviceType,
-    //           reportDetails: report.reportDetails)
-    //     else
-    //       report
-    // ];
+    response.stream.transform(utf8.decoder).listen((event) {
+      final responseBody = json.decode(event);
+
+      final finalDate = DateFormat('yyyy-MM-dd HH:mm:ss')
+          .parse(DateTime.parse(responseBody['end_date']).toString(), true);
+
+      state = [
+        for (final report in state)
+          if (report.serviceId == serviceId)
+            ServiceReport(
+                serviceId: report.serviceId,
+                itemId: report.itemId,
+                itemName: report.itemName,
+                status: 'complete',
+                endTime: finalDate,
+                customerName: report.customerName,
+                startTime: report.startTime,
+                serviceType: report.serviceType,
+                reportDetails: report.reportDetails)
+          else
+            report
+      ];
+      state.sort((a, b) => b.startTime.compareTo(a.startTime));
+    });
   }
 
   void updateServiceReport(
@@ -140,12 +148,11 @@ class ServiceReportList extends StateNotifier<List<ServiceReport>> {
 }
 
 Future<List<ServiceReport>> getServiceReportDetails(String orgId) async {
+  if (orgId == '') return [];
   http.Response response = await HttpReq.get(
       path: '/api/v1/$orgId/field-service-report',
       headers: {},
       authorized: true);
-
-  // print(response.body);
 
   final Map<String, dynamic> responseBody = json.decode(response.body);
 
@@ -157,8 +164,12 @@ Future<List<ServiceReport>> getServiceReportDetails(String orgId) async {
           itemName: e['item_name'] ?? '',
           status: e['service_status'],
           customerName: e['customer_name'],
-          startTime: DateTime.parse(e['start_date']),
-          endTime: e['end_date'] != null ? DateTime.parse(e['end_date']) : null,
+          startTime: DateFormat('yyyy-MM-dd HH:mm:ss')
+              .parse(DateTime.parse(e['start_date']).toString(), true),
+          endTime: e['end_date'] != null
+              ? DateFormat('yyyy-MM-dd HH:mm:ss')
+                  .parse(DateTime.parse(e['end_date']).toString(), true)
+              : null,
           serviceType: ReportTypes.values.firstWhere((element) {
             return element.toString().split('.').last == e['service_type'];
           }),
