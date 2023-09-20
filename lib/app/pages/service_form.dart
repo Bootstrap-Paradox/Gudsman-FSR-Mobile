@@ -11,12 +11,6 @@ import 'package:gudsman_service/utils/dataClass/report/report_form.dart';
 final Map<String, List<Map<String, dynamic>>> serviceFormSchema = {
   "conditions_of": [
     {
-      "label": "Start Signature",
-      "type": "signature",
-      "name": "start_signature",
-      "required": true
-    },
-    {
       "label": "Date of Battery Change",
       "type": "date",
       "name": "date_of_battery_change",
