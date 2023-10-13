@@ -174,7 +174,9 @@ class _FetchSelectState extends ConsumerState<FetchSelect> {
         if (filter == '') {
           return [];
         }
-        return await widget.asyncItemsFetch(filter);
+        dynamic searchedItems = await widget.asyncItemsFetch(filter);
+        return searchedItems;
+        // return await widget.asyncItemsFetch(filter);
       },
       onChanged: (value) {
         widget.onChanged(value);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gudsman_service/app/app.dart';
 import 'package:gudsman_service/app/pages/home.dart';
 import 'package:gudsman_service/app/pages/new_service.dart';
 import 'package:gudsman_service/components/buttons/buttons.dart';
@@ -417,6 +418,8 @@ class ServiceFormScreen extends ConsumerStatefulWidget {
 }
 
 class _ServiceFormScreenState extends ConsumerState<ServiceFormScreen> {
+  bool submitted = false;
+
   @override
   Widget build(BuildContext context) {
     int formStage = ref.watch(activeFormStageProvider);
@@ -472,148 +475,161 @@ class _ServiceFormScreenState extends ConsumerState<ServiceFormScreen> {
         ),
         body: Padding(
           padding: const EdgeInsets.all(20.0),
-          child: CustomScrollView(
-            slivers: <Widget>[
-              SliverList(
-                delegate: SliverChildListDelegate([
-                  Center(
-                    child: Text(
-                      convertToEnglish(sectionTitle),
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ListView.builder(
-                      // scrollDirection: Axis.vertical,
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: serviceFormSchema[serviceFormSchema.entries
-                              .map((e) => e.key)
-                              .toList()[formStage]]
-                          ?.length,
-                      itemBuilder: (context, index) {
-                        dynamic value;
-                        final Map<String, dynamic> schemaData =
-                            serviceFormSchema[serviceFormSchema.entries
-                                    .map((e) => e.key)
-                                    .toList()[formStage]]?[index] ??
-                                {};
-                        final String fieldLabel = schemaData['label'];
-                        final String fieldName = schemaData['name'];
-
-                        final ServiceReport currentReport =
-                            serviceReportsList.firstWhere((element) =>
-                                element.serviceId == widget.serviceId);
-
-                        if (currentReport.reportDetails[sectionTitle] != null) {
-                          value = currentReport.reportDetails[sectionTitle]
-                              [fieldName];
-                        }
-
-                        final Key fieldKey = Key(
-                            '${serviceFormSchema.entries.map((e) => e.key).toList()[formStage]}-$fieldName');
-
-                        return ListTile(
-                          title: Text(fieldLabel),
-                          subtitle: FieldAnalyzer(
-                            globalKey: fieldKey,
-                            serviceId: widget.serviceId,
-                            fieldName: fieldName,
-                            fieldValue: value,
-                            fieldLabel: '',
-                            fieldDescription: '',
-                            fieldId: fieldKey.toString(),
-                            fieldType: schemaData['type'],
-                            defaultData: schemaData['defaultData'] ?? {},
-                            readOnly: widget.readOnly,
+          child: submitted
+              ? const Center(
+                  child: CircularProgressIndicator(),
+                )
+              : CustomScrollView(
+                  slivers: <Widget>[
+                    SliverList(
+                      delegate: SliverChildListDelegate([
+                        Center(
+                          child: Text(
+                            convertToEnglish(sectionTitle),
+                            style: TextStyle(color: Colors.grey.shade600),
                           ),
-                        );
-                      }),
-                ]),
-              ),
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (formStage != 0) ...[
-                              Expanded(
-                                child: CustomButton(
-                                  text: 'Previous',
-                                  onClick: () {
-                                    ref
-                                        .read(activeFormStageProvider.notifier)
-                                        .update((state) {
-                                      if (state > 0) {
-                                        return state - 1;
-                                      }
-                                      return state;
-                                    });
-                                  },
+                        ),
+                        const SizedBox(height: 20),
+                        ListView.builder(
+                            // scrollDirection: Axis.vertical,
+                            physics: const NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: serviceFormSchema[serviceFormSchema
+                                    .entries
+                                    .map((e) => e.key)
+                                    .toList()[formStage]]
+                                ?.length,
+                            itemBuilder: (context, index) {
+                              dynamic value;
+                              final Map<String, dynamic> schemaData =
+                                  serviceFormSchema[serviceFormSchema.entries
+                                          .map((e) => e.key)
+                                          .toList()[formStage]]?[index] ??
+                                      {};
+                              final String fieldLabel = schemaData['label'];
+                              final String fieldName = schemaData['name'];
+
+                              final ServiceReport currentReport =
+                                  serviceReportsList.firstWhere((element) =>
+                                      element.serviceId == widget.serviceId);
+
+                              if (currentReport.reportDetails[sectionTitle] !=
+                                  null) {
+                                value = currentReport
+                                    .reportDetails[sectionTitle][fieldName];
+                              }
+
+                              final Key fieldKey = Key(
+                                  '${serviceFormSchema.entries.map((e) => e.key).toList()[formStage]}-$fieldName');
+
+                              return ListTile(
+                                title: Text(fieldLabel),
+                                subtitle: FieldAnalyzer(
+                                  globalKey: fieldKey,
+                                  serviceId: widget.serviceId,
+                                  fieldName: fieldName,
+                                  fieldValue: value,
+                                  fieldLabel: '',
+                                  fieldDescription: '',
+                                  fieldId: fieldKey.toString(),
+                                  fieldType: schemaData['type'],
+                                  defaultData: schemaData['defaultData'] ?? {},
+                                  readOnly: widget.readOnly,
                                 ),
-                              ),
-                            ],
-                            if (formStage == maxPageLimit &&
-                                !widget.readOnly) ...[
-                              const SizedBox(
-                                width: 20,
-                              ),
-                              Expanded(
-                                child: CustomButton(
-                                    text: 'Submit Report',
-                                    onClick: () {
-                                      showMyDialog(
-                                          ctx: context,
-                                          title: const Text('Submit Report'),
-                                          content: const Text(
-                                              'Do you want to Submit this report?'),
-                                          onSubmit: () async {
-                                            await ref
-                                                .read(serviceReportListProvider
-                                                    .notifier)
-                                                .publishServiceReport(
-                                                    widget.serviceId)
-                                                .then((value) {
-                                              Navigator.of(context).pop();
-                                            });
+                              );
+                            }),
+                      ]),
+                    ),
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (formStage != 0) ...[
+                                    Expanded(
+                                      child: CustomButton(
+                                        text: 'Previous',
+                                        onClick: () {
+                                          ref
+                                              .read(activeFormStageProvider
+                                                  .notifier)
+                                              .update((state) {
+                                            if (state > 0) {
+                                              return state - 1;
+                                            }
+                                            return state;
                                           });
-                                    }),
-                              ),
-                            ],
-                            if (formStage != maxPageLimit) ...[
-                              if (formStage != 0)
-                                const SizedBox(
-                                  width: 20,
-                                ),
-                              Expanded(
-                                child: CustomButton(
-                                    text: 'Next',
-                                    onClick: () {
-                                      ref
-                                          .read(
-                                              activeFormStageProvider.notifier)
-                                          .update((state) {
-                                        if (state < maxPageLimit) {
-                                          return state + 1;
-                                        }
-                                        return state;
-                                      });
-                                    }),
-                              ),
-                            ],
-                          ],
-                        )),
-                  ),
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                  if (formStage == maxPageLimit &&
+                                      !widget.readOnly) ...[
+                                    const SizedBox(
+                                      width: 20,
+                                    ),
+                                    Expanded(
+                                      child: CustomButton(
+                                          text: 'Submit Report',
+                                          onClick: () {
+                                            showMyDialog(
+                                                ctx: context,
+                                                title:
+                                                    const Text('Submit Report'),
+                                                content: const Text(
+                                                    'Do you want to Submit this report?'),
+                                                onSubmit: () async {
+                                                  setState(() {
+                                                    submitted = true;
+                                                  });
+                                                  await ref
+                                                      .read(
+                                                          serviceReportListProvider
+                                                              .notifier)
+                                                      .publishServiceReport(
+                                                          widget.serviceId)
+                                                      .then((value) {
+                                                    Navigator.of(context).pop();
+                                                  });
+                                                });
+                                          }),
+                                    ),
+                                  ],
+                                  if (formStage != maxPageLimit) ...[
+                                    if (formStage != 0)
+                                      const SizedBox(
+                                        width: 20,
+                                      ),
+                                    Expanded(
+                                      child: CustomButton(
+                                          text: 'Next',
+                                          onClick: () {
+                                            ref
+                                                .read(activeFormStageProvider
+                                                    .notifier)
+                                                .update((state) {
+                                              if (state < maxPageLimit) {
+                                                return state + 1;
+                                              }
+                                              return state;
+                                            });
+                                          }),
+                                    ),
+                                  ],
+                                ],
+                              )),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),

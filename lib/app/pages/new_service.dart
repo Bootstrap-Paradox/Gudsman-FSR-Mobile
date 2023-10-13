@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gudsman_service/app/app.dart';
 import 'package:gudsman_service/app/pages/home.dart';
 import 'package:gudsman_service/app/pages/service_form.dart';
 import 'package:gudsman_service/components/buttons/buttons.dart';
@@ -90,7 +91,14 @@ class _NewServiceScreenState extends ConsumerState<NewServiceScreen> {
                               '/api/v1/${orgData.value?.id}/customer?search=$filter',
                           authorized: true,
                         );
-                        return await json.decode(response.body)['customers'];
+
+                        Map<String, dynamic> decodedResponse =
+                            await json.decode(response.body);
+
+                        if (decodedResponse.containsKey('customers')) {
+                          return decodedResponse['customers'];
+                        }
+                        return [];
                       },
                       onChanged: (value) {
                         customerSelect.id = value['customer_id'];
@@ -166,44 +174,7 @@ class _NewServiceScreenState extends ConsumerState<NewServiceScreen> {
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        // floatingActionButton: Padding(
-        //   padding: const EdgeInsets.only(bottom: 20),
-        //   child: ButtonTheme(
-        //     minWidth: 600.0,
-        //     height: 100.0,
-        //     child: ElevatedButton(
-        //       style: ButtonStyle(
-        //         shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-        //             RoundedRectangleBorder(
-        //           borderRadius: BorderRadius.circular(8.0),
-        //         )),
-        //       ),
-        //       onPressed: () {},
-        //       child: const Text("Submit Report"),
-        //     ),
-        //   ),
-        // )
       ),
     );
   }
 }
-
-// Future<List<CustomerModel>> fetchCustomers(dynamic filter) async {
-//   if (filter == '') {
-//     return [];
-//   }
-
-//   final response = await HttpReq.get(
-//       '/api/v1/64370043e7e4cb9245f564a9/customer?search=', {},
-//       authorized: true);
-
-//   final List<dynamic> customers = response['customers'];
-//   // print(customers);
-//   return customers
-//       .map((customer) => CustomerModel(
-//             id: customer['id'],
-//             displayName: customer['display_name'],
-//             customerData: customer,
-//           ))
-//       .toList();
-// }

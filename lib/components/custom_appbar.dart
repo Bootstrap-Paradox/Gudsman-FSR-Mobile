@@ -8,7 +8,7 @@ class CustomAppBar extends AppBar {
           ),
           backgroundColor: color ?? const Color(0xFFFFFFFF),
           title: Text(
-            title ?? 'Gudsman Reports',
+            title ?? 'Gudsman FSR',
             style: const TextStyle(color: Colors.black),
           ),
           actions: actions,

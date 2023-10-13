@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:gudsman_service/main.dart';
 import 'package:gudsman_service/utils/exceptions/unauthorized_exception.dart';
 import 'package:gudsman_service/utils/shared_prefs.dart';
@@ -118,19 +119,20 @@ class HttpMultiPartReq {
         } else if (value.runtimeType == List) {
         } else if (value.runtimeType == DateTime) {
         } else {
+          String fileName = '$key.png';
+          var uniqueKey = UniqueKey().toString();
           if (value['type'] == 'image') {
             final uploadFile = File(value['value']);
-            // final fileName = value['value'].split('/').last;
-            request.files.add(http.MultipartFile('${value['value']}',
+            request.files.add(http.MultipartFile(uniqueKey,
                 uploadFile.readAsBytes().asStream(), uploadFile.lengthSync(),
-                filename: key));
+                filename: fileName));
             // newBody[key]['value'] = fileName;
           } else if (value['type'] == 'signature') {
             request.files.add(http.MultipartFile.fromBytes(
-                '$key.png', Uint8List.fromList(base64.decode(value['value'])),
-                filename: '$key.png'));
+                uniqueKey, Uint8List.fromList(base64.decode(value['value'])),
+                filename: fileName));
           }
-          value['value'] = '$key.png';
+          value['value'] = uniqueKey;
           check(value);
         }
       });

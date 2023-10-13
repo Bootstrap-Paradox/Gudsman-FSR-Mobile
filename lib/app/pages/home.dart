@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gudsman_service/app/app.dart';
 import 'package:gudsman_service/app/pages/new_service.dart';
 import 'package:gudsman_service/components/custom_appbar.dart';
 import 'package:gudsman_service/components/dashboard/dashboard.dart';
+import 'package:gudsman_service/components/dashboard/organization_card.dart';
 import 'package:gudsman_service/components/dashboard/recent_reports.dart';
 import 'package:gudsman_service/utils/dataClass/organization.dart';
 import 'package:gudsman_service/utils/dataClass/report/report_form.dart';
 import 'package:gudsman_service/utils/exceptions/unauthorized_exception.dart';
-
-final orgFetchProvider =
-    StateNotifierProvider<OrganizationNotifier, AsyncValue<OrganizationModel>>(
-        (ref) => OrganizationNotifier(ref));
-
-final orgProvider = StateProvider<OrganizationModel?>((ref) {
-  return ref.watch(orgFetchProvider).value;
-});
 
 final serviceReportListProvider =
     StateNotifierProvider<ServiceReportList, List<ServiceReport>>((ref) {
@@ -49,6 +43,8 @@ final todaysServiceReports = StateProvider<List<ServiceReport>?>((ref) {
     return reports
         .where((element) =>
             element.startTime.difference(DateTime.now()).inDays == 0)
+        .toList()
+        .where((element) => element.status != 'active')
         .toList();
   } catch (e) {
     return null;
@@ -104,7 +100,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       });
       return Scaffold(
           appBar: CustomAppBar(
-            title: 'Gudsman Reports',
             actions: [
               IconButton(
                 icon: const Icon(Icons.refresh),
@@ -140,57 +135,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 const SizedBox(
                   height: 60,
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      Container(
-                        // color: Colors.red,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(6)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.shade300,
-                              blurRadius: 2,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                          color: const Color(0xFFF5F5F5),
-                        ),
-                        height: 40,
-                        width: 40,
-                        child: const Text(
-                          '',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      Expanded(
-                        child: Container(
-                          // color: Colors.red,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(6)),
-                              color: Colors.white,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.3),
-                                  blurRadius: 16,
-                                  offset: const Offset(3, 3),
-                                )
-                              ]),
-                          height: 40,
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(orgDetails.orgName),
-                        ),
-                      ),
-                    ],
-                  ),
+                OrganizationCard(
+                  orgName: orgDetails.orgName,
                 ),
                 ListTile(
                   leading: const Icon(Icons.home),

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gudsman_service/main.dart';
 import 'package:gudsman_service/utils/http_req.dart';
 
 @immutable
@@ -31,6 +32,10 @@ class OrganizationNotifier
     try {
       final response = await HttpReq.get(
           path: '/api/v1/organization', headers: {}, authorized: true);
+
+      if (response.statusCode == 404) {
+        navigatorKey.currentState!.pushReplacementNamed('/new-org');
+      }
 
       final Map<String, dynamic> responseBody = json.decode(response.body);
       state = AsyncData(OrganizationModel(

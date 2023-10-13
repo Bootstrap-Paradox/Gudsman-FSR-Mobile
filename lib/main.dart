@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gudsman_service/app/app.dart';
+import 'package:gudsman_service/app/new_organization_page.dart';
 import 'package:gudsman_service/app/pages/home.dart';
 import 'package:gudsman_service/auth/logout.dart';
 import 'package:gudsman_service/auth/onboarding.dart';
@@ -69,6 +70,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/onboard': (context) => const OnBoardingScreen(),
         '/home': (context) => const HomeScreen(),
+        '/new-org': (context) => const NewOrganizationPage(),
         '/new_service': (context) => const NewServiceScreen(),
         // '/service-form': (context) => const ServiceFormScreen(),
         '/logout': (context) => const LogoutScreen(),

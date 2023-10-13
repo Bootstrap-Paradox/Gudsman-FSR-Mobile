@@ -16,27 +16,29 @@ class _RecentReportsComponentState
   @override
   Widget build(BuildContext context) {
     final recentServiceList = ref.watch(recentServiceReports);
-    return Column(
-      children: [
-        const Padding(
-          padding: EdgeInsets.all(12.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Recent Reports'),
-              Text('View All'),
-            ],
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(12.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Recent Reports'),
+                Text('View All'),
+              ],
+            ),
           ),
-        ),
-        ListView.builder(
-          scrollDirection: Axis.vertical,
-          itemCount: recentServiceList!.length,
-          shrinkWrap: true,
-          itemBuilder: (context, index) {
-            return ReportBlock(report: recentServiceList[index]);
-          },
-        ),
-      ],
+          ListView.builder(
+            physics: const ScrollPhysics(),
+            itemCount: recentServiceList!.length,
+            shrinkWrap: true,
+            itemBuilder: (context, index) {
+              return ReportBlock(report: recentServiceList[index]);
+            },
+          ),
+        ],
+      ),
     );
   }
 }
